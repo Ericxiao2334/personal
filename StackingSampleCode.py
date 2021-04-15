@@ -9,17 +9,20 @@ import numpy as np
 from sklearn.metrics import roc_auc_score
 from sklearn.datasets.samples_generator import make_blobs
 
-# generate sample dataset
-data, target = make_blobs(n_samples=50000, centers=2, random_state=0, cluster_std=0.60)
+# dataset
+# data, target = make_blobs(n_samples=50000, centers=2, random_state=0, cluster_std=0.60)
+dataset = pd.read_csv('/Users/kaggle/predict-future-sales.csv',header=None)
+dataset.rename.(columns={8:'label'},inplace=True)
+dataset.head(n=5)
 
-# 模型融合中使用到的各个单模型
+# base models
 clfs = [RandomForestClassifier(n_estimators=5, n_jobs=-1, criterion='gini'),
         RandomForestClassifier(n_estimators=5, n_jobs=-1, criterion='entropy'),
         ExtraTreesClassifier(n_estimators=5, n_jobs=-1, criterion='gini'),
         ExtraTreesClassifier(n_estimators=5, n_jobs=-1, criterion='entropy'),
         GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=5)]
 
-# 切分一部分数据作为测试集
+# train test split
 X, X_predict, y, y_predict = train_test_split(data, target, test_size=0.33, random_state=2017)
 
 dataset_blend_train = np.zeros((X.shape[0], len(clfs)))
@@ -29,7 +32,7 @@ dataset_blend_test = np.zeros((X_predict.shape[0], len(clfs)))
 n_folds = 5
 skf = list(StratifiedKFold(y, n_folds))
 for j, clf in enumerate(clfs):
-    # 依次训练各个单模型
+    # train each model in sequence
     # print(j, clf)
     dataset_blend_test_j = np.zeros((X_predict.shape[0], len(skf)))
     for i, (train, test) in enumerate(skf):
